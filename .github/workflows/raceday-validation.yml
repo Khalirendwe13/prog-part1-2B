@@ -1,0 +1,164 @@
+name: RaceDay CI/CD Validation
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  validate-project:
+    name: Validate RaceDay Project
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Download repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Check required folders
+      - name: Check Required Folders
+        run: |
+          echo "Checking repository structure..."
+
+          if [ ! -d "docs" ]; then
+            echo "ERROR: docs folder is missing."
+            exit 1
+          fi
+
+          if [ ! -d ".github/workflows" ]; then
+            echo "ERROR: GitHub workflows folder is missing."
+            exit 1
+          fi
+
+          echo "Required folders exist."
+
+      # 3. Check required documentation files
+      - name: Check Required Documentation
+        run: |
+          echo "Checking required documentation..."
+
+          if [ ! -f "docs/RaceDay_ERD.png" ]; then
+            echo "ERROR: RaceDay_ERD.png is missing."
+            exit 1
+          fi
+
+          if [ ! -f "docs/API_Endpoint_Plan.md" ]; then
+            echo "ERROR: API_Endpoint_Plan.md is missing."
+            exit 1
+          fi
+
+          if [ ! -f "docs/RaceDay_Database.sql" ]; then
+            echo "ERROR: RaceDay_Database.sql is missing."
+            exit 1
+          fi
+
+          if [ ! -f "README.md" ]; then
+            echo "ERROR: README.md is missing."
+            exit 1
+          fi
+
+          echo "All required documentation files exist."
+
+      # 4. Check SQL script
+      - name: Validate SQL Script
+        run: |
+          echo "Checking SQL script..."
+
+          grep -qi "CREATE TABLE" docs/RaceDay_Database.sql || {
+            echo "ERROR: SQL script does not contain CREATE TABLE statements."
+            exit 1
+          }
+
+          grep -qi "PRIMARY KEY" docs/RaceDay_Database.sql || {
+            echo "ERROR: SQL script does not contain PRIMARY KEY definitions."
+            exit 1
+          }
+
+          grep -qi "FOREIGN KEY" docs/RaceDay_Database.sql || {
+            echo "ERROR: SQL script does not contain FOREIGN KEY definitions."
+            exit 1
+          }
+
+          grep -qi "INSERT INTO" docs/RaceDay_Database.sql || {
+            echo "ERROR: SQL script does not contain INSERT statements."
+            exit 1
+          }
+
+          echo "SQL script validation passed."
+
+      # 5. Check API endpoint plan
+      - name: Validate API Endpoint Plan
+        run: |
+          echo "Checking API endpoint plan..."
+
+          grep -qi "/api/auth/register" docs/API_Endpoint_Plan.md || {
+            echo "ERROR: Register endpoint missing."
+            exit 1
+          }
+
+          grep -qi "/api/auth/login" docs/API_Endpoint_Plan.md || {
+            echo "ERROR: Login endpoint missing."
+            exit 1
+          }
+
+          grep -qi "/api/events" docs/API_Endpoint_Plan.md || {
+            echo "ERROR: Events endpoints missing."
+            exit 1
+          }
+
+          grep -qi "/api/categories" docs/API_Endpoint_Plan.md || {
+            echo "ERROR: Categories endpoints missing."
+            exit 1
+          }
+
+          grep -qi "/api/enrolments" docs/API_Endpoint_Plan.md || {
+            echo "ERROR: Enrolment endpoints missing."
+            exit 1
+          }
+
+          grep -qi "/api/results" docs/API_Endpoint_Plan.md || {
+            echo "ERROR: Results endpoints missing."
+            exit 1
+          }
+
+          echo "API endpoint plan validation passed."
+
+      # 6. Check README sections
+      - name: Validate README
+        run: |
+          echo "Checking README..."
+
+          grep -qi "Section A" README.md || {
+            echo "ERROR: Section A missing from README."
+            exit 1
+          }
+
+          grep -qi "Section B" README.md || {
+            echo "ERROR: Section B missing from README."
+            exit 1
+          }
+
+          grep -qi "Section C" README.md || {
+            echo "ERROR: Section C missing from README."
+            exit 1
+          }
+
+          echo "README validation passed."
+
+      # 7. Final success message
+      - name: Validation Successful
+        run: |
+          echo "======================================"
+          echo "RaceDay CI/CD Validation Successful!"
+          echo "======================================"
+          echo "ERD:              FOUND"
+          echo "API Plan:         FOUND"
+          echo "SQL Script:       FOUND"
+          echo "README:           FOUND"
+          echo "Repository:       VALID"
+          echo "======================================"
