@@ -493,3 +493,4 @@ The RaceDay solution uses the ERD as the database blueprint, the
 endpoint plan as the API blueprint, and the SQL script as the database
 implementation blueprint. Part 2 should implement these approved designs
 without unexplained deviations.
+<img width="1024" height="576" alt="image" src="https://github.com/user-attachments/assets/1289131c-a866-45eb-90dc-0c9e2fbb725f" />
