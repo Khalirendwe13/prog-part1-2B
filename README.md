@@ -1,113 +1,118 @@
-RaceDay API
-Overview
-RaceDay API is an ASP.NET Core Web API project for managing race events and related data. It uses C#, Entity Framework Core, and Microsoft SQL Server. The API includes registration and login for Organiser and Participant roles, session-based authentication, and role-aware access control.
-Technology Stack
-- ASP.NET Core Web API (net10.0)
-- C#
-- Entity Framework Core
-- Microsoft SQL Server / LocalDB
-- Cookie authentication and server-side sessions
-- Password hashing with ASP.NET Core Identity
-- Swagger / OpenAPI for API exploration
-- xUnit-based test project (see RaceDay.Tests)
-Project Structure
-RaceDay.API/
-├── RaceDay.API/
-│   ├── Controllers/       # API endpoints
-│   ├── Data/              # EF Core database context
-│   ├── DTOs/              # Request/response data-transfer objects
-│   ├── Models/            # Entity models
-│   ├── Migrations/        # EF Core migrations
-│   ├── Authentication/    # Session and antiforgery middleware
-│   ├── Program.cs         # Service and middleware configuration
-│   └── appsettings.json   # Configuration, including connection string
-└── RaceDay.Tests/         # Automated tests
-Requirements
-1. Visual Studio 2022 or a compatible .NET IDE.
-2. The .NET SDK required by the project target (net10.0).
-3. Microsoft SQL Server or SQL Server LocalDB.
-4. Entity Framework Core command-line tools or the Package Manager Console in Visual Studio.
-Note: The project targets .NET 10. Ensure the .NET 10 SDK is installed and supported by your Visual Studio version.
+RaceDay – Event Management System
+Project overview
+RaceDay is an ASP.NET Core solution made up of an API project, an MVC web application, and an automated test project. The API is responsible for application data, authentication, and communication with Azure Blob Storage. The MVC application communicates with the API over HTTP; it must not connect to Azure Blob Storage directly or contain Azure storage credentials.
+Projects
+Project	Purpose
+RaceDay.API	REST API, SQL Server/Entity Framework Core data access, cookie authentication, role authorisation, and Azure Blob Storage integration.
+RaceDay.Mvc	ASP.NET Core MVC front end. It uses an HttpClient to call the API.
+RaceDay.Tests	Automated tests for the application.
 
-Database Setup
-The default connection string in RaceDay.API/appsettings.json uses SQL Server LocalDB:
-"RaceDayConnection": "Server=(localdb)\\MSSQLLocalDB;Database=RaceDayDev;Trusted_Connection=True;TrustServerCertificate=True;"
-If you use a different SQL Server instance, update ConnectionStrings:RaceDayConnection in appsettings.json or your local development configuration.
-From Visual Studio, open the solution and set RaceDay.API as the startup project. Open Tools → NuGet Package Manager → Package Manager Console, select RaceDay.API as the default project, then run:
+
+Technologies
+- C# and ASP.NET Core MVC / Web API
+- .NET 10 (the project files target net10.0)
+- SQL Server and Entity Framework Core
+- Azure Blob Storage (Azure.Storage.Blobs)
+- Swagger / OpenAPI
+- xUnit test project
+Prerequisites
+Install the following before running the project:
+1. Visual Studio 2022 with the ASP.NET and web development workload, with a .NET 10 SDK available.
+2. SQL Server LocalDB (or a SQL Server instance you configure).
+3. Azure Storage Account access if you want to test event banner uploads.
+4. Internet access to restore NuGet packages.
+Check that your installed Visual Studio version supports the .NET 10 SDK and net10.0 projects. If it does not, install a compatible Visual Studio update/SDK before building.
+
+Open the project
+1. Extract the ZIP file to a working folder.
+2. Open the RaceDay.API folder.
+3. Open the API and MVC .csproj files in Visual Studio, or create/open a solution and add these projects:
+   - RaceDay.API/RaceDay.API.csproj
+   - RaceDay.Mvc/RaceDay.Mvc.csproj
+   - RaceDay.Tests/RaceDay.Tests.csproj
+4. Restore NuGet packages and build the projects.
+Database configuration
+The API currently uses this development connection string in RaceDay.API/appsettings.json:
+"ConnectionStrings": {
+  "RaceDayConnection": "Server=(localdb)\\MSSQLLocalDB;Database=RaceDayDev;Trusted_Connection=True;TrustServerCertificate=True;"
+}
+Change the connection string if you use a different SQL Server instance. Keep production credentials and secrets out of source control.
+
+Apply the Entity Framework Core migrations from the API project directory:
+dotnet tool install --global dotnet-ef
+dotnet ef database update
+If dotnet-ef is already installed, the first command is not required. In Visual Studio's Package Manager Console, select RaceDay.API as the Default project and run:
 Update-Database
-The repository includes an initial EF Core migration. If the database has not been created, Update-Database applies the existing migration and creates the schema. On startup, the application seeds the Organiser and Participant roles if they do not already exist.
-If EF tooling reports that no migration can be found, check the selected default project and startup project before creating a new migration.
-Run the API
-1. Open RaceDay.API.slnx in Visual Studio.
-2. Confirm the database connection string is correct.
-3. Apply the database migration using the instructions above.
-4. Set RaceDay.API as the startup project.
-5. Run using HTTPS (F5 or Ctrl+F5).
-In Development, Swagger UI is enabled for exploring and trying endpoints. The application redirects HTTP to HTTPS and configures secure cookies, so use the HTTPS URL.
-Alternatively, from a terminal in the solution folder:
-dotnet restore
-dotnet build
-dotnet run --project RaceDay.API/RaceDay.API.csproj
-Authentication
-The authentication controller is routed under /api/auth.
-Method	Endpoint	Purpose
-POST	/api/auth/register	Register an Organiser or Participant
-POST	/api/auth/login	Validate credentials and sign in
-POST	/api/auth/logout	Sign out and clear the session
+The API initialises the Organiser and Participant roles when it starts outside the Testing environment.
+Azure Blob Storage – event banners
+Architecture
+The MVC application sends the selected image to the RaceDay API. The API validates the image, uploads it to the Azure Storage container, and saves the returned BannerImageUrl on the event record. The event detail API response includes that URL so the front end can display the banner.
+
+Do not add Azure connection strings or Azure Storage SDK calls to the MVC project. All file operations must go through the API.
+Configure Azure credentials
+1. Create an Azure Storage Account in the Azure portal.
+2. Copy its connection string from the storage account's Access keys page.
+3. Open a terminal in the RaceDay.API project directory and run:
+dotnet user-secrets init
+dotnet user-secrets set "AzureBlobStorage:ConnectionString" "YOUR_AZURE_STORAGE_CONNECTION_STRING"
+dotnet user-secrets set "AzureBlobStorage:ContainerName" "event-banners"
+Replace the placeholder with your real connection string. Do not commit it to Git or paste it into this README. The blank connection string in appsettings.json is intentional.
+
+For deployment, configure the secret in the hosting platform using the environment variable:
+AzureBlobStorage__ConnectionString
+The configured container name is event-banners. The API creates the container when an image is first uploaded. The current implementation is designed to use publicly readable blob URLs for displaying event banners. If your storage account policy blocks anonymous blob access, configure private access and implement short-lived, read-only SAS URLs instead.
+Banner API endpoints
+HTTP method	Endpoint	Purpose
+POST	/api/events	Create an event using the event DTO.
+POST	/api/events/{id}/banner	Upload an event banner as multipart/form-data, using the form field name file.
+PUT	/api/events/{id}	Update event details.
+GET	/api/events/{id}	Retrieve event details, including BannerImageUrl.
 
 
-Registration accepts a role of Organiser or Participant. Passwords are hashed before storage. Login establishes a session and authentication cookie. Protected endpoints require authentication, and role-restricted endpoints may require the appropriate role.
-Use the DTOs in RaceDay.API/DTOs/ to confirm the exact request fields and validation rules for each endpoint. Since authentication uses cookies, API clients such as Swagger or Postman must retain and send the authentication cookie for subsequent protected requests.
-Example registration request
-Adjust the fields to match RegisterDto:
+Banner uploads require the existing Organiser authentication and event ownership checks. The API accepts JPEG, PNG, WEBP, and GIF images up to 5 MB.
+MVC upload sequence
+For a new event:
+1. The MVC application posts the event details to POST /api/events.
+2. It reads the new event ID from the API response.
+3. If a banner was selected, it posts the image to POST /api/events/{id}/banner as multipart form data. The form field must be named file.
+For an existing event:
+1. The MVC application updates event details through PUT /api/events/{id}.
+2. If the organiser selected a replacement banner, it posts that image to POST /api/events/{id}/banner.
+The event detail page should display the BannerImageUrl returned by the API, for example:
+@if (!string.IsNullOrWhiteSpace(Model.BannerImageUrl))
 {
-  "firstName": "Alex",
-  "lastName": "Example",
-  "email": "alex@example.com",
-  "password": "Use-A-Strong-Password",
-  "role": "Participant"
+    <img src="@Model.BannerImageUrl" alt="@Model.EventName banner" />
 }
-Example login request
-{
-  "email": "alex@example.com",
-  "password": "Use-A-Strong-Password"
-}
-Do not use real passwords in examples, source control, or test data.
-API Controllers
-Controllers currently included in the project:
-- AuthController — registration, login, and logout.
-- CategoriesController — category endpoints.
-- EnrolmentsController — enrolment endpoints.
-- EventsController — race event endpoints.
-- ProfileController — profile-related endpoints.
-- ResultsController — race result endpoints.
-- SecurityController — security / antiforgery-related endpoint(s).
-- WeatherForecastController — ASP.NET Core template sample endpoint.
-Check each controller's attributes and DTOs for the precise route paths, HTTP methods, and role requirements.
-Run Tests
-The automated test project is RaceDay.Tests.
-From the solution folder, run:
+The MVC project's API base address is currently configured in RaceDay.Mvc/Program.cs as https://localhost:44332/. Update this URL to match the API's actual launch URL in your local environment. Ensure the API and MVC applications are both running when testing the complete website workflow.
+Run the applications
+1. Configure the SQL Server connection string.
+2. Apply the database migrations.
+3. Configure Azure Blob Storage secrets if testing banner uploads.
+4. Set RaceDay.API as a startup project and run it. In Development, Swagger is enabled for API testing.
+5. Confirm the API URL and update the RaceDayApi HttpClient base address in RaceDay.Mvc/Program.cs if necessary.
+6. Run RaceDay.Mvc and use the website to access the API-backed features.
+Run the API and MVC on HTTPS during local development so cookie authentication behaves as expected.
+Run automated tests
+From the extracted project root, run:
 dotnet test RaceDay.Tests/RaceDay.Tests.csproj
-Or in Visual Studio, right-click the test project and select Run Tests / use Test Explorer.
-Test files include authentication integration tests, database isolation tests, and registration validation tests. A successful build does not itself guarantee every test passes; review the test output for failures.
-Security Notes
-- Use HTTPS when testing authentication.
-- Keep connection strings and credentials appropriate for your environment; do not commit production secrets.
-- The configured cookies are HTTP-only and use secure settings. For local HTTP-only development, adjust settings carefully and do not carry insecure settings into production.
-- Cookie-authenticated state-changing requests may require the configured antiforgery token/header (X-CSRF-TOKEN). Follow the security endpoint/controller implementation to obtain and send the token.
-- Do not expose this development database or test credentials publicly.
+Or use Test > Run All Tests in Visual Studio's Test Explorer.
+Security and configuration notes
+- Never commit Azure Storage connection strings, passwords, or production secrets.
+- Use User Secrets for local development and the hosting provider's secret store for deployment.
+- Keep Azure Blob Storage access inside the API; the MVC project should only call API endpoints.
+- Use HTTPS for deployed applications.
+- Review the storage account's public-access policy. Public blob access may be restricted by organisational or cloud security policies.
+- Change the development database connection string and API base URL to match your own environment.
 Troubleshooting
-- Cannot connect to SQL Server: Verify SQL Server LocalDB/SQL Server is installed and running, and confirm the connection string.
-- Database tables are missing: Run Update-Database from the correct startup/default project.
-- 401 Unauthorized: Log in and ensure the client sends the authentication cookie.
-- 403 Forbidden: The authenticated account may not have the role required by the endpoint.
-- Antiforgery error: Obtain and send the token as required by the security endpoint and the X-CSRF-TOKEN header.
-- Swagger is unavailable: It is enabled only in the Development environment; run with the Development environment selected.
-License
-No license information is specified in this repository. Add a license file if you intend to distribute the project publicly.
+Problem	What to check
+SQL Server connection fails	Confirm LocalDB/SQL Server is installed and the connection string points to the correct instance.
+Database tables are missing	Run dotnet ef database update from the API project directory.
+Banner upload fails	Check the Azure connection string, container configuration, Organiser login, event ownership, image type, and 5 MB limit.
+MVC cannot reach the API	Check that the API is running and that the RaceDayApi base address matches its HTTPS URL.
+Swagger is unavailable	Run the API using the Development environment.
+NuGet restore/build fails	Confirm the .NET 10 SDK is installed and restore packages again.
 
-The RaceDay solution uses the ERD as the database blueprint, the
-endpoint plan as the API blueprint, and the SQL script as the database
-implementation blueprint. Part 2 should implement these approved designs
-without unexplained deviations.
-<img width="1024" height="576" alt="image" src="https://github.com/user-attachments/assets/1289131c-a866-45eb-90dc-0c9e2fbb725f" />
+
+Additional Azure setup guide
+See [`RaceDay.API/AZURE-BLOB-STORAGE-SETUP.md`](RaceDay.API/AZURE-BLOB-STORAGE-SETUP.md) for the focused Azure Blob Storage configuration notes and API upload example.
+<img width="1024" height="576" alt="image" src="https://github.com/user-attachments/assets/dd011b6b-d953-46bf-8279-b29e14c340db" />
