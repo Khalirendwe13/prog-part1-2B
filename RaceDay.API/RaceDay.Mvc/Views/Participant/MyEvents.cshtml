@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "My Events";
+}
+
+<h2 class="mb-4">My Enrolments</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Event</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.GetProperty("eventName").GetString()</td>
+                <td>@item.GetProperty("categoryName").GetString()</td>
+                <td>
+                    @{
+                        var status = "Enrolled";
+                        var badge = "bg-success";
+                    }
+                    <span class="badge @badge">@status</span>
+                </td>
+                <td>@item.GetProperty("eventDate").GetDateTime().ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>

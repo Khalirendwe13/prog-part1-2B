@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "My Results";
+}
+
+<h2 class="mb-4">My Race Results</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Event</th>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Finish Time</th>
+            <th>Position</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.GetProperty("eventName").GetString()</td>
+                <td>@r.GetProperty("eventDate").GetDateTime().ToString("dd MMM yyyy")</td>
+                <td>@r.GetProperty("categoryName").GetString()</td>
+                <td>@r.GetProperty("finishTime").GetString()</td>
+                <td>@r.GetProperty("finishingPosition").GetInt32()</td>
+            </tr>
+        }
+    </tbody>
+</table>

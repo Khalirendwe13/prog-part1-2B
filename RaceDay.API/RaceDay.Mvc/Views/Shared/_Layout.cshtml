@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - RaceDay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+            body {
+                background-color: #f8f9fa;
+            }
+
+            .navbar {
+                background: linear-gradient(90deg, #1a1a2e, #16213e);
+            }
+
+            .navbar-brand {
+                font-weight: 700;
+                letter-spacing: 1px;
+            }
+
+            .btn-raceday {
+                background-color: #e94560;
+                border: none;
+                color: white;
+            }
+
+                .btn-raceday:hover {
+                    background-color: #c73e54;
+                    color: white;
+                }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="/">RaceDay</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="nav">
+                    <ul class="navbar-nav me-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Organiser"))
+                            {
+                                <li class="nav-item"><a class="nav-link" href="/Organiser/Dashboard">Dashboard</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/Organiser/Events">My Events</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/Organiser/Results">Results</a></li>
+                            }
+                            else if (User.IsInRole("Participant"))
+                            {
+                                <li class="nav-item"><a class="nav-link" href="/Participant">Upcoming Events</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/Participant/MyEvents">My Events</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/Participant/MyResults">My Results</a></li>
+                            }
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-white">Hello, @User.Identity.Name</span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link" href="/Account/Login">Login</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Account/Register">Register</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

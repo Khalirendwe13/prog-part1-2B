@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "Upcoming Events";
+}
+
+<h2 class="mb-4">Upcoming Events</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<div class="row">
+    @if (Model != null)
+    {
+        @foreach (var ev in Model)
+        {
+            string name = "Unnamed Event";
+            string location = "Unknown";
+            string date = "-";
+            string type = "-";
+            string distance = "0";
+            int id = 0;
+
+            if (ev.TryGetProperty("eventName", out System.Text.Json.JsonElement n))
+                name = n.GetString() ?? "Unnamed Event";
+
+            if (ev.TryGetProperty("location", out System.Text.Json.JsonElement loc))
+                location = loc.GetString() ?? "Unknown";
+
+            if (ev.TryGetProperty("eventDate", out System.Text.Json.JsonElement d))
+                date = d.GetDateTime().ToString("dd MMM yyyy");
+
+            if (ev.TryGetProperty("eventType", out System.Text.Json.JsonElement t))
+                type = t.GetString() ?? "-";
+
+            if (ev.TryGetProperty("distance", out System.Text.Json.JsonElement dist))
+                distance = dist.ToString();
+
+            if (ev.TryGetProperty("id", out System.Text.Json.JsonElement i))
+                id = i.GetInt32();
+            else if (ev.TryGetProperty("eventID", out System.Text.Json.JsonElement i2))
+                id = i2.GetInt32();
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@name</h5>
+                        <p class="card-text text-muted">
+                            @location <br />
+                            @date
+                        </p>
+                        <p>
+                            <span class="badge bg-primary">@type</span>
+                            <span class="badge bg-secondary">@distance km</span>
+                        </p>
+                        <a href="/Participant/EventDetails/@id" class="btn btn-raceday btn-sm">
+                            View & Enter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Manage Results";
+}
+
+<h2 class="mb-4">Manage Race Results</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<p>Select an event to manage its race results.</p>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Event</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.GetProperty("eventName").GetString()</td>
+                <td>@item.GetProperty("eventDate").GetDateTime().ToString("dd MMM yyyy")</td>
+                <td>@item.GetProperty("location").GetString()</td>
+                <td>
+                    <a asp-action="EventResults"
+                       asp-route-eventId="@item.GetProperty("eventID").GetInt32()"
+                       class="btn btn-primary btn-sm">
+                        Manage Results
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

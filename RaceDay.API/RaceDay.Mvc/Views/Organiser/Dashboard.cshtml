@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Organiser Dashboard";
+}
+
+<h2>Dashboard</h2>
+<p class="lead">Welcome back, @User.Identity?.Name</p>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">My Events</h5>
+                <a href="/Organiser/Events" class="btn btn-light btn-sm">Manage Events</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Create Event</h5>
+                <a href="/Organiser/CreateEvent" class="btn btn-light btn-sm">New Event</a>
+            </div>
+        </div>
+    </div>
+</div>

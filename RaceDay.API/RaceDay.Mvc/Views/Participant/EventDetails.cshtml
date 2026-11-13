@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Event Details";
+
+    var ev = (System.Text.Json.JsonElement)ViewBag.Event;
+    var categories = ViewBag.Categories as List<System.Text.Json.JsonElement>
+                     ?? new List<System.Text.Json.JsonElement>();
+
+    string name = ev.TryGetProperty("eventName", out var n) ? n.GetString() ?? "Unnamed" : "Unnamed";
+    string description = ev.TryGetProperty("description", out var desc) ? desc.GetString() ?? "" : "";
+    string date = ev.TryGetProperty("eventDate", out var d) ? d.GetDateTime().ToString("dd MMM yyyy") : "-";
+    string location = ev.TryGetProperty("location", out var loc) ? loc.GetString() ?? "-" : "-";
+    string distance = ev.TryGetProperty("distance", out var dist) ? dist.ToString() : "0";
+    string type = ev.TryGetProperty("eventType", out var t) ? t.GetString() ?? "-" : "-";
+    int id = ev.TryGetProperty("id", out var i) ? i.GetInt32() :
+             (ev.TryGetProperty("eventID", out var i2) ? i2.GetInt32() : 0);
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="card shadow">
+    <div class="card-body">
+        <h2>@name</h2>
+        <p>@description</p>
+        <p>
+            <strong>Date:</strong> @date <br />
+            <strong>Location:</strong> @location <br />
+            <strong>Distance:</strong> @distance km <br />
+            <strong>Type:</strong> @type
+        </p>
+
+        <h5 class="mt-4">Select Category to Enter</h5>
+
+        @if (categories.Count == 0)
+        {
+            <div class="alert alert-warning">No categories available for this event yet.</div>
+        }
+        else
+        {
+            <form method="post" asp-action="Enrol">
+                <input type="hidden" name="eventId" value="@id" />
+                <div class="mb-3">
+                    <select name="categoryId" class="form-select" required>
+                        <option value="">Choose category</option>
+                        @foreach (var cat in categories)
+                        {
+                            string catName = cat.TryGetProperty("categoryName", out var cn) ? cn.GetString() :
+                                             (cat.TryGetProperty("name", out var cn2) ? cn2.GetString() : "Category");
+                            int catId = cat.TryGetProperty("id", out var ci) ? ci.GetInt32() :
+                                        (cat.TryGetProperty("categoryID", out var ci2) ? ci2.GetInt32() : 0);
+
+                            <option value="@catId">@catName</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-raceday">Enter Event</button>
+            </form>
+        }
+    </div>
+</div>

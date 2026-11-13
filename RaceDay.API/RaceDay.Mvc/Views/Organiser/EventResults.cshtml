@@ -1,0 +1,100 @@
+﻿@model List<System.Text.Json.JsonElement>
+
+@{
+    ViewData["Title"] = "Event Results";
+}
+
+<h2 class="mb-4">Enter Event Results</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<p>Event ID: @ViewBag.EventId</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No participants have enrolled in this event yet.
+    </div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Participant</th>
+                <th>Category</th>
+                <th>Finish Time</th>
+                <th>Position</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var participant in Model)
+            {
+                <tr>
+                    <td>
+                        @participant.GetProperty("firstName").GetString()
+                        @participant.GetProperty("lastName").GetString()
+                    </td>
+
+                    <td>
+                        @participant.GetProperty("categoryName").GetString()
+                    </td>
+
+                    <form asp-action="AddResult" method="post">
+                        <input type="hidden"
+                               name="eventId"
+                               value="@ViewBag.EventId" />
+
+                        <input type="hidden"
+                               name="enrolmentID"
+                               value="@participant.GetProperty("enrolmentID").GetInt32()" />
+
+                        <td>
+                            <input type="text"
+                                   name="finishTime"
+                                   class="form-control"
+                                   placeholder="01:25:30"
+                                   required />
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   name="finishingPosition"
+                                   class="form-control"
+                                   min="1"
+                                   required />
+                        </td>
+
+                        <td>
+                            <button type="submit"
+                                    class="btn btn-primary btn-sm">
+                                Save Result
+                            </button>
+                        </td>
+                    </form>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

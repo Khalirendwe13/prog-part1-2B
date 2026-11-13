@@ -1,0 +1,75 @@
+﻿@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@{
+    ViewData["Title"] = "Manage Categories";
+    int eventId = (int)ViewBag.EventId;
+    string eventName = ViewBag.EventName as string ?? "Event";
+}
+
+<h2>Categories for: @eventName</h2>
+
+<div class="card mb-4">
+    <div class="card-header">Add New Category</div>
+    <div class="card-body">
+        <form method="post" asp-action="AddCategory">
+            <input type="hidden" name="eventId" value="@eventId" />
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label>Category Name</label>
+                    <input name="categoryName" class="form-control" required placeholder="e.g. 10km / Under 30" />
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label>Min Age</label>
+                    <input type="number" name="minimumAge" class="form-control" />
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label>Max Age</label>
+                    <input type="number" name="maximumAge" class="form-control" />
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label>Distance</label>
+                    <input type="number" step="0.1" name="distance" class="form-control" />
+                </div>
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-raceday w-100">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Min Age</th>
+            <th>Max Age</th>
+            <th>Distance</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cat in Model)
+        {
+            string catName = cat.TryGetProperty("categoryName", out System.Text.Json.JsonElement n) ? n.GetString() ?? "-" : "-";
+            string minAge = cat.TryGetProperty("minimumAge", out System.Text.Json.JsonElement min) ? min.ToString() : "-";
+            string maxAge = cat.TryGetProperty("maximumAge", out System.Text.Json.JsonElement max) ? max.ToString() : "-";
+            string dist = cat.TryGetProperty("distance", out System.Text.Json.JsonElement distVal) ? distVal.ToString() : "-";
+
+            <tr>
+                <td>@catName</td>
+                <td>@minAge</td>
+                <td>@maxAge</td>
+                <td>@dist</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a href="/Organiser/Events" class="btn btn-secondary mt-3">Back to Events</a>

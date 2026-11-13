@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "My Events";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Events</h2>
+    <a href="/Organiser/CreateEvent" class="btn btn-raceday">Create New Event</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Distance</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ev in Model)
+        {
+            int id = ev.TryGetProperty("id", out System.Text.Json.JsonElement i) ? i.GetInt32() :
+                     (ev.TryGetProperty("eventID", out System.Text.Json.JsonElement i2) ? i2.GetInt32() : 0);
+
+            <tr>
+                <td>@(ev.TryGetProperty("eventName", out System.Text.Json.JsonElement n) ? n.GetString() : "-")</td>
+                <td>@(ev.TryGetProperty("eventDate", out System.Text.Json.JsonElement d) ? d.GetDateTime().ToString("dd MMM yyyy") : "-")</td>
+                <td>@(ev.TryGetProperty("location", out System.Text.Json.JsonElement loc) ? loc.GetString() : "-")</td>
+                <td>@(ev.TryGetProperty("eventType", out System.Text.Json.JsonElement t) ? t.GetString() : "-")</td>
+                <td>@(ev.TryGetProperty("distance", out System.Text.Json.JsonElement dist) ? dist.ToString() : "0") km</td>
+                <td>
+                    <a href="/Organiser/Categories/@id" class="btn btn-sm btn-outline-primary">
+                        Categories
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
